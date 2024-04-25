@@ -18,7 +18,7 @@ from managers.InputManager import InputManager
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("Tents and Trees")
+        pygame.display.set_caption("Chess")
 
         self.screen = Screen(ScreenSize.WIDTH, ScreenSize.HEIGHT)
 
