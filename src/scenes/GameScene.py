@@ -22,3 +22,7 @@ class GameScene(Scene):
 
     def create_board(self):
         self.board = Board(self)
+
+    def update(self):
+        self.board.update()
+        return super().update()

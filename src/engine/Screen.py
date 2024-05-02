@@ -21,11 +21,6 @@ class Screen:
     def handle_input(self):
         mouse_position = InputManager.get_mouse_position()
 
-        mouse_position = (
-            mouse_position[0] - self.width / 2,
-            mouse_position[1] - self.height / 2,
-        )
-
         for button in UIManager.buttons:
             if not button.interactable:
                 continue

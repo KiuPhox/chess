@@ -1,19 +1,18 @@
-from constants.AssetPath import ImagePath
+import pygame
 
-from engine.GameObject import GameObject
+from constants.AssetPath import FontPath, ImagePath
+
+from engine.Button import Button
 from engine.components.Sprite import Sprite
 
 
-class Piece(GameObject):
+class Piece(Button):
     def __init__(self, scene):
-        super().__init__(scene)
+        super().__init__(scene, ImagePath.WHITE_PAWN)
 
         self.name = "Piece"
         self.scale = (0.4, 0.4)
-
-        self.sprite = Sprite(self)
-        self.sprite.set_sprite(ImagePath.WHITE_PAWN)
-        self.add_component(self.sprite)
+        self.label.font = pygame.font.Font(FontPath.TT_FORS, 20)
 
         self.set_type(PieceType.PAWN | PieceType.WHITE)
 

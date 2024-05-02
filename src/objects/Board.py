@@ -1,3 +1,4 @@
+from managers.InputManager import InputManager
 from objects.Piece import Piece, PieceType
 from objects.Square import Square
 
@@ -13,6 +14,7 @@ class Board:
         self.scene = scene
         self.board = [PieceType.NONE] * 64
         self.cells = []
+        self.selected_piece = None
 
         self.decode_fen()
 
@@ -40,6 +42,7 @@ class Board:
             piece = Piece(self.scene)
             piece.position = self.cells[i].square.position
             piece.set_type(self.board[i])
+            piece.left_click_callback = (self.on_piece_click, [piece], {})
 
             self.cells[i].piece = piece
 
@@ -112,6 +115,15 @@ class Board:
                 fen += "/"
 
         return fen
+
+    def update(self) -> None:
+        if self.selected_piece is None:
+            return
+
+        self.selected_piece.position = InputManager.get_mouse_position()
+
+    def on_piece_click(self, piece: Piece) -> None:
+        self.selected_piece = piece
 
 
 class Cell:
