@@ -1,5 +1,7 @@
 import pygame
 
+from constants.SortingOrder import SortingOrder
+
 from engine.components.Component import Component
 from engine.GameObject import GameObject
 
@@ -13,11 +15,16 @@ class Sprite(Component):
         self.name = "Sprite"
         self.image = None
         self.color = (255, 255, 255)
+        self.order = SortingOrder.DEFAULT
 
         SpriteManager.register_sprite(self)
 
     def set_sprite(self, path: str):
         self.image = pygame.image.load(path)
+
+    def set_order(self, order: int):
+        self.order = order
+        SpriteManager.sort()
 
     def width(self):
         return self.image.get_width() * self.game_object.scale[0]

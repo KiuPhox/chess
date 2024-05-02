@@ -14,7 +14,13 @@ class SpriteManager:
     @staticmethod
     def register_sprite(sprite):
         SpriteManager.sprites.append(sprite)
+        SpriteManager.sort()
 
     @staticmethod
     def unregister_sprite(sprite):
         SpriteManager.sprites.remove(sprite)
+        SpriteManager.sort()
+
+    @staticmethod
+    def sort():
+        SpriteManager.sprites.sort(key=lambda x: x.order)

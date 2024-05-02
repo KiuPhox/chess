@@ -1,3 +1,5 @@
+from constants.SortingOrder import SortingOrder
+
 from managers.InputManager import InputManager
 from objects.Piece import Piece, PieceType
 from objects.Square import Square
@@ -138,7 +140,7 @@ class Board:
             return
 
         self.selected_piece = piece
-
+        self.selected_piece.sprite.set_order(SortingOrder.SELECTED_PIECE)
         self.set_pieces_interactable(False)
 
     def on_square_click(self, square: Square) -> None:
@@ -150,6 +152,7 @@ class Board:
 
         if end_cell == start_cell:
             self.selected_piece.position = square.position
+            self.selected_piece.sprite.set_order(SortingOrder.PIECE)
             self.selected_piece = None
             self.set_pieces_interactable(True)
             return
@@ -165,6 +168,7 @@ class Board:
         end_cell.piece = self.selected_piece
 
         self.selected_piece.position = square.position
+        self.selected_piece.sprite.set_order(SortingOrder.PIECE)
         self.selected_piece = None
         self.set_pieces_interactable(True)
 

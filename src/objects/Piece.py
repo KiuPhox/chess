@@ -1,6 +1,7 @@
 import pygame
 
 from constants.AssetPath import FontPath, ImagePath
+from constants.SortingOrder import SortingOrder
 
 from engine.Button import Button
 from engine.components.Sprite import Sprite
@@ -15,6 +16,7 @@ class Piece(Button):
         self.label.font = pygame.font.Font(FontPath.TT_FORS, 20)
 
         self.set_type(PieceType.PAWN | PieceType.WHITE)
+        self.sprite.set_order(SortingOrder.PIECE)
 
     def get_color(self):
         return self.type & 24
