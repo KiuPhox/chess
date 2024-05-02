@@ -38,6 +38,9 @@ class Piece(Button):
         image_name = f"{color}_{piece_type}"
         self.sprite.set_sprite(ImagePath.__dict__[image_name])
 
+    def is_team(self, piece: "Piece") -> bool:
+        return self.get_color() == piece.get_color()
+
 
 class PieceType:
     NONE = 0

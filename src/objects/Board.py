@@ -9,11 +9,20 @@ SQUARE_SIZE = 64
 FEN_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 
+class Cell:
+    def __init__(self, square: Square, piece: Piece = None):
+        self.square = square
+        self.piece = piece
+
+    def has_piece(self) -> bool:
+        return self.piece is not None
+
+
 class Board:
     def __init__(self, scene):
         self.scene = scene
         self.board = [PieceType.NONE] * 64
-        self.cells = []
+        self.cells: list[Cell] = []
         self.selected_piece = None
 
         self.decode_fen()
@@ -32,6 +41,8 @@ class Board:
                     SQUARE_SIZE * ((i * 8 + j) // 8 - 3.5),
                 )
                 square.sprite.color = LIGHT_COLOR if is_light else DARK_COLOR
+                square.left_click_callback = (self.on_square_click, [square], {})
+
                 self.cells.append(Cell(square))
 
     def create_pieces(self) -> None:
@@ -123,10 +134,55 @@ class Board:
         self.selected_piece.position = InputManager.get_mouse_position()
 
     def on_piece_click(self, piece: Piece) -> None:
+        if self.selected_piece is not None:
+            return
+
         self.selected_piece = piece
 
+        self.set_pieces_interactable(False)
 
-class Cell:
-    def __init__(self, square: Square, piece: Piece = None):
-        self.square = square
-        self.piece = piece
+    def on_square_click(self, square: Square) -> None:
+        if self.selected_piece is None:
+            return
+
+        start_cell = self.get_cell_base_on_piece(self.selected_piece)
+        end_cell = self.get_cell_base_on_square(square)
+
+        if end_cell == start_cell:
+            self.selected_piece.position = square.position
+            self.selected_piece = None
+            self.set_pieces_interactable(True)
+            return
+
+        if end_cell.has_piece() and end_cell.piece.is_team(self.selected_piece):
+            return
+
+        if end_cell.has_piece() and not end_cell.piece.is_team(self.selected_piece):
+            end_cell.piece.active = False
+            end_cell.piece = None
+
+        start_cell.piece = None
+        end_cell.piece = self.selected_piece
+
+        self.selected_piece.position = square.position
+        self.selected_piece = None
+        self.set_pieces_interactable(True)
+
+    def get_cell_base_on_piece(self, piece: Piece) -> Cell:
+        return next(filter(lambda cell: cell.piece == piece, self.cells))
+
+    def get_cell_base_on_square(self, square: Square) -> Cell:
+        return next(filter(lambda cell: cell.square == square, self.cells))
+
+    def set_pieces_interactable(self, interactable: bool) -> None:
+        for cell in self.cells:
+            if cell.has_piece():
+                cell.piece.interactable = interactable
+
+    def update_board(self) -> None:
+        for i in range(64):
+            self.board[i] = (
+                self.cells[i].piece.type
+                if self.cells[i].has_piece()
+                else PieceType.NONE
+            )

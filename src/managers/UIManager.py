@@ -16,7 +16,7 @@ class UIManager:
 
     @staticmethod
     def register_button(button):
-        UIManager.buttons.append(button)
+        UIManager.buttons.insert(0, button)
 
     @staticmethod
     def unregister_button(button):

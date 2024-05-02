@@ -1,17 +1,14 @@
-from constants.AssetPath import ImagePath
+import pygame
+from constants.AssetPath import FontPath, ImagePath
 
-from engine.GameObject import GameObject
+from engine.Button import Button
 from engine.components.Sprite import Sprite
 
 
-class Square(GameObject):
+class Square(Button):
     def __init__(self, scene):
-        super().__init__(scene)
+        super().__init__(scene, ImagePath.SQUARE)
 
         self.name = "Square"
         self.scale = (0.5, 0.5)
-
-        self.sprite = Sprite(self)
-        self.sprite.set_sprite(ImagePath.SQUARE)
-
-        self.add_component(self.sprite)
+        self.label.font = pygame.font.Font(FontPath.TT_FORS, 20)
