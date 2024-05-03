@@ -65,6 +65,7 @@ class Screen:
 
             scaled_image = pygame.transform.scale(sprite.image, size)
             scaled_image.fill(sprite.color, special_flags=pygame.BLEND_RGB_MULT)
+            scaled_image.set_alpha(sprite.opacity)
 
             position = (
                 game_object.position[0] - sprite.width() / 2 + self.width / 2,

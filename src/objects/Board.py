@@ -1,10 +1,11 @@
-import pygame
 from constants.SortingOrder import SortingOrder
 
 from managers.InputManager import InputManager
+
 from objects.Move import Move
 from objects.Piece import Piece, PieceType
 from objects.Square import Square
+from objects.SquareFrame import SquareFrame
 
 LIGHT_COLOR = (234, 236, 209)
 DARK_COLOR = (120, 149, 88)
@@ -17,18 +18,22 @@ class Board:
     def __init__(self, scene):
         self.scene = scene
         self.board = [PieceType.NONE] * 64
-
-        self.squares: list[Square] = []
         self.selected_square = None
-
         self.color_to_move = PieceType.WHITE
 
         self.decode_fen()
 
+        self.create_square_frame()
         self.create_squares()
         self.create_pieces()
 
+    def create_square_frame(self) -> None:
+        self.square_frame = SquareFrame(self.scene)
+        self.square_frame.active = False
+
     def create_squares(self) -> None:
+        self.squares: list[Square] = []
+
         for i in range(8):
             for j in range(8):
                 is_light = (i + j) % 2 == 0
@@ -42,6 +47,7 @@ class Board:
 
                 square.left_down_callback = (self.on_square_down, [square], {})
                 square.left_up_callback = (self.on_square_up, [square], {})
+                square.on_enter_callback = (self.on_square_enter, [square], {})
 
                 self.squares.append(square)
 
@@ -75,7 +81,11 @@ class Board:
             return
 
         square.piece.sprite.set_order(SortingOrder.SELECTED_PIECE)
+
         self.selected_square = square
+
+        self.square_frame.active = True
+        self.square_frame.position = square.position
 
     def on_square_up(self, square: Square) -> None:
         if self.selected_square is None:
@@ -88,6 +98,15 @@ class Board:
 
         self.make_move(move)
 
+        self.selected_square = None
+        self.square_frame.active = False
+
+    def on_square_enter(self, square: Square) -> None:
+        if self.selected_square is None:
+            return
+
+        self.square_frame.position = square.position
+
     def make_move(self, move: Move) -> None:
         start_square = move.start_square
         end_square = move.end_square
@@ -97,10 +116,11 @@ class Board:
         if end_square == start_square:
             selected_piece.position = end_square.position
             selected_piece.sprite.set_order(SortingOrder.PIECE)
-            self.selected_square = None
             return
 
         if end_square.has_piece() and end_square.piece.is_team(selected_piece):
+            selected_piece.position = start_square.position
+            selected_piece.sprite.set_order(SortingOrder.PIECE)
             return
 
         if end_square.has_piece() and not end_square.piece.is_team(selected_piece):
@@ -113,7 +133,6 @@ class Board:
         selected_piece.position = end_square.position
         selected_piece.sprite.set_order(SortingOrder.PIECE)
 
-        self.selected_square = None
         self.change_turn()
 
     def change_turn(self) -> None:

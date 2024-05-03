@@ -1,6 +1,7 @@
 class ImagePath:
     IMAGE = "./assets/images/"
     SQUARE = IMAGE + "square.png"
+    SQUARE_FRAME = IMAGE + "square_frame.png"
     BLACK_KING = IMAGE + "bk.png"
     BLACK_PAWN = IMAGE + "bp.png"
     BLACK_KNIGHT = IMAGE + "bn.png"

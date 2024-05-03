@@ -16,6 +16,8 @@ class Piece(GameObject):
 
         self.sprite = Sprite(self)
         self.sprite.set_order(SortingOrder.PIECE)
+        self.sprite.color = (255, 255, 255)
+
         self.add_component(self.sprite)
 
         self.set_type(PieceType.PAWN | PieceType.WHITE)

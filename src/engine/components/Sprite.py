@@ -16,6 +16,7 @@ class Sprite(Component):
         self.image = None
         self.color = (255, 255, 255)
         self.order = SortingOrder.DEFAULT
+        self.opacity = 255
 
         SpriteManager.register_sprite(self)
 

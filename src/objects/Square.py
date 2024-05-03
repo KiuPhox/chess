@@ -4,8 +4,6 @@ from constants.AssetPath import FontPath, ImagePath
 from constants.SortingOrder import SortingOrder
 
 from engine.Button import Button
-from engine.components.Sprite import Sprite
-
 from objects.Piece import Piece
 
 

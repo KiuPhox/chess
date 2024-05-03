@@ -1,5 +1,6 @@
 class SortingOrder:
     DEFAULT = 0
     SQUARE = 1
-    PIECE = 2
-    SELECTED_PIECE = 3
+    SQUARE_FRAME = 2
+    PIECE = 3
+    SELECTED_PIECE = 4
