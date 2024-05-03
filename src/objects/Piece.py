@@ -3,20 +3,22 @@ import pygame
 from constants.AssetPath import FontPath, ImagePath
 from constants.SortingOrder import SortingOrder
 
-from engine.Button import Button
+from engine.GameObject import GameObject
 from engine.components.Sprite import Sprite
 
 
-class Piece(Button):
+class Piece(GameObject):
     def __init__(self, scene):
-        super().__init__(scene, ImagePath.WHITE_PAWN)
+        super().__init__(scene)
 
         self.name = "Piece"
         self.scale = (0.4, 0.4)
-        self.label.font = pygame.font.Font(FontPath.TT_FORS, 20)
+
+        self.sprite = Sprite(self)
+        self.sprite.set_order(SortingOrder.PIECE)
+        self.add_component(self.sprite)
 
         self.set_type(PieceType.PAWN | PieceType.WHITE)
-        self.sprite.set_order(SortingOrder.PIECE)
 
     def get_color(self):
         return self.type & 24

@@ -1,6 +1,7 @@
 from constants.SortingOrder import SortingOrder
 
 from managers.InputManager import InputManager
+from objects.Move import Move
 from objects.Piece import Piece, PieceType
 from objects.Square import Square
 
@@ -11,28 +12,20 @@ SQUARE_SIZE = 64
 FEN_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 
-class Cell:
-    def __init__(self, square: Square, piece: Piece = None):
-        self.square = square
-        self.piece = piece
-
-    def has_piece(self) -> bool:
-        return self.piece is not None
-
-
 class Board:
     def __init__(self, scene):
         self.scene = scene
         self.board = [PieceType.NONE] * 64
-        self.cells: list[Cell] = []
-        self.selected_piece = None
+        self.squares: list[Square] = []
+
+        self.selected_square = None
 
         self.decode_fen()
 
-        self.create_square()
+        self.create_squares()
         self.create_pieces()
 
-    def create_square(self) -> None:
+    def create_squares(self) -> None:
         for i in range(8):
             for j in range(8):
                 is_light = (i + j) % 2 == 0
@@ -45,7 +38,7 @@ class Board:
                 square.sprite.color = LIGHT_COLOR if is_light else DARK_COLOR
                 square.left_click_callback = (self.on_square_click, [square], {})
 
-                self.cells.append(Cell(square))
+                self.squares.append(square)
 
     def create_pieces(self) -> None:
         for i in range(64):
@@ -53,11 +46,55 @@ class Board:
                 continue
 
             piece = Piece(self.scene)
-            piece.position = self.cells[i].square.position
+            piece.position = self.squares[i].position
             piece.set_type(self.board[i])
-            piece.left_click_callback = (self.on_piece_click, [piece], {})
 
-            self.cells[i].piece = piece
+            self.squares[i].piece = piece
+
+    def update(self) -> None:
+        if self.selected_square is None:
+            return
+
+        self.selected_square.piece.position = InputManager.get_mouse_position()
+
+    def on_square_click(self, square: Square) -> None:
+        if self.selected_square is None and square.has_piece():
+            square.piece.sprite.set_order(SortingOrder.SELECTED_PIECE)
+            self.selected_square = square
+            return
+
+        start_square = self.selected_square
+        end_square = square
+
+        move = Move(start_square, end_square)
+        self.make_move(move)
+
+    def make_move(self, move: Move) -> None:
+        start_square = move.start_square
+        end_square = move.end_square
+
+        selected_piece = start_square.piece
+
+        if end_square == start_square:
+            selected_piece.position = end_square.position
+            selected_piece.sprite.set_order(SortingOrder.PIECE)
+            self.selected_square = None
+            return
+
+        if end_square.has_piece() and end_square.piece.is_team(selected_piece):
+            return
+
+        if end_square.has_piece() and not end_square.piece.is_team(selected_piece):
+            end_square.piece.active = False
+            end_square.piece = None
+
+        end_square.piece = selected_piece
+        start_square.piece = None
+
+        selected_piece.position = end_square.position
+        selected_piece.sprite.set_order(SortingOrder.PIECE)
+
+        self.selected_square = None
 
     def decode_fen(self, fen=FEN_START) -> str:
         fen = fen.split(" ")[0]
@@ -129,64 +166,10 @@ class Board:
 
         return fen
 
-    def update(self) -> None:
-        if self.selected_piece is None:
-            return
-
-        self.selected_piece.position = InputManager.get_mouse_position()
-
-    def on_piece_click(self, piece: Piece) -> None:
-        if self.selected_piece is not None:
-            return
-
-        self.selected_piece = piece
-        self.selected_piece.sprite.set_order(SortingOrder.SELECTED_PIECE)
-        self.set_pieces_interactable(False)
-
-    def on_square_click(self, square: Square) -> None:
-        if self.selected_piece is None:
-            return
-
-        start_cell = self.get_cell_base_on_piece(self.selected_piece)
-        end_cell = self.get_cell_base_on_square(square)
-
-        if end_cell == start_cell:
-            self.selected_piece.position = square.position
-            self.selected_piece.sprite.set_order(SortingOrder.PIECE)
-            self.selected_piece = None
-            self.set_pieces_interactable(True)
-            return
-
-        if end_cell.has_piece() and end_cell.piece.is_team(self.selected_piece):
-            return
-
-        if end_cell.has_piece() and not end_cell.piece.is_team(self.selected_piece):
-            end_cell.piece.active = False
-            end_cell.piece = None
-
-        start_cell.piece = None
-        end_cell.piece = self.selected_piece
-
-        self.selected_piece.position = square.position
-        self.selected_piece.sprite.set_order(SortingOrder.PIECE)
-        self.selected_piece = None
-        self.set_pieces_interactable(True)
-
-    def get_cell_base_on_piece(self, piece: Piece) -> Cell:
-        return next(filter(lambda cell: cell.piece == piece, self.cells))
-
-    def get_cell_base_on_square(self, square: Square) -> Cell:
-        return next(filter(lambda cell: cell.square == square, self.cells))
-
-    def set_pieces_interactable(self, interactable: bool) -> None:
-        for cell in self.cells:
-            if cell.has_piece():
-                cell.piece.interactable = interactable
-
     def update_board(self) -> None:
         for i in range(64):
             self.board[i] = (
-                self.cells[i].piece.type
-                if self.cells[i].has_piece()
+                self.squares[i].piece.type
+                if self.squares[i].has_piece()
                 else PieceType.NONE
             )
