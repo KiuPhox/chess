@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, List
+import bisect
 
 if TYPE_CHECKING:
     from engine.components.Sprite import Sprite
@@ -13,14 +14,11 @@ class SpriteManager:
 
     @staticmethod
     def register_sprite(sprite):
-        SpriteManager.sprites.append(sprite)
-        SpriteManager.sort()
+        index = bisect.bisect_left(
+            [sprite.order for sprite in SpriteManager.sprites], sprite.order
+        )
+        SpriteManager.sprites.insert(index, sprite)
 
     @staticmethod
     def unregister_sprite(sprite):
         SpriteManager.sprites.remove(sprite)
-        SpriteManager.sort()
-
-    @staticmethod
-    def sort():
-        SpriteManager.sprites.sort(key=lambda x: x.order)

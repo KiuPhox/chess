@@ -25,7 +25,9 @@ class Sprite(Component):
 
     def set_order(self, order: int):
         self.order = order
-        SpriteManager.sort()
+
+        SpriteManager.unregister_sprite(self)
+        SpriteManager.register_sprite(self)
 
     def width(self):
         return self.image.get_width() * self.game_object.scale[0]
