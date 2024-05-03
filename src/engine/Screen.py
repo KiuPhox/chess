@@ -38,10 +38,16 @@ class Screen:
                     button.on_mouse_enter = True
 
                 if InputManager.get_mouse_down(0):
-                    button.on_left_click()
+                    button.on_left_down()
+                    return
+                elif InputManager.get_mouse_up(0):
+                    button.on_left_up()
                     return
                 elif InputManager.get_mouse_down(2):
-                    button.on_right_click()
+                    button.on_right_down()
+                    return
+                elif InputManager.get_mouse_up(2):
+                    button.on_right_up()
                     return
 
             elif button.on_mouse_enter:

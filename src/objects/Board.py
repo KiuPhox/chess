@@ -1,3 +1,4 @@
+import pygame
 from constants.SortingOrder import SortingOrder
 
 from managers.InputManager import InputManager
@@ -38,7 +39,9 @@ class Board:
                     SQUARE_SIZE * ((i * 8 + j) // 8 - 3.5),
                 )
                 square.sprite.color = LIGHT_COLOR if is_light else DARK_COLOR
-                square.left_click_callback = (self.on_square_click, [square], {})
+
+                square.left_down_callback = (self.on_square_down, [square], {})
+                square.left_up_callback = (self.on_square_up, [square], {})
 
                 self.squares.append(square)
 
@@ -59,18 +62,23 @@ class Board:
 
         self.selected_square.piece.position = InputManager.get_mouse_position()
 
-    def on_square_click(self, square: Square) -> None:
+    def on_square_down(self, square: Square) -> None:
+        if self.selected_square is not None:
+            return
+
+        piece = square.piece
+
+        if piece is None:
+            return
+
+        if piece.get_color() != self.color_to_move:
+            return
+
+        square.piece.sprite.set_order(SortingOrder.SELECTED_PIECE)
+        self.selected_square = square
+
+    def on_square_up(self, square: Square) -> None:
         if self.selected_square is None:
-            piece = square.piece
-
-            if piece is None:
-                return
-
-            if piece.get_color() != self.color_to_move:
-                return
-
-            square.piece.sprite.set_order(SortingOrder.SELECTED_PIECE)
-            self.selected_square = square
             return
 
         start_square = self.selected_square

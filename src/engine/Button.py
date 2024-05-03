@@ -16,10 +16,6 @@ class Button(GameObject):
         scene: "Scene",
         image: str = None,
         string: str = "",
-        left_click_callback=None,
-        right_click_callback=None,
-        on_enter_callback=None,
-        on_exit_callback=None,
     ) -> None:
         super().__init__(scene)
 
@@ -34,10 +30,14 @@ class Button(GameObject):
         self.label.text = string
         self.add_component(self.label)
 
-        self.left_click_callback = left_click_callback
-        self.right_click_callback = right_click_callback
-        self.on_enter_callback = on_enter_callback
-        self.on_exit_callback = on_exit_callback
+        self.left_down_callback = None
+        self.right_down_callback = None
+        self.left_down_callback = None
+        self.right_down_callback = None
+        self.left_up_callback = None
+        self.right_up_callback = None
+        self.on_enter_callback = None
+        self.on_exit_callback = None
 
         self.touch_zone_size = (0, 0)
         self.on_mouse_enter = False
@@ -49,14 +49,24 @@ class Button(GameObject):
         super().update()
         self.label.position = self.position
 
-    def on_left_click(self) -> None:
-        if self.left_click_callback is not None:
-            function, args, kwargs = self.left_click_callback
+    def on_left_down(self) -> None:
+        if self.left_down_callback is not None:
+            function, args, kwargs = self.left_down_callback
             function(*args, **kwargs)
 
-    def on_right_click(self) -> None:
-        if self.right_click_callback is not None:
-            function, args, kwargs = self.right_click_callback
+    def on_right_down(self) -> None:
+        if self.right_down_callback is not None:
+            function, args, kwargs = self.right_down_callback
+            function(*args, **kwargs)
+
+    def on_left_up(self) -> None:
+        if self.left_up_callback is not None:
+            function, args, kwargs = self.left_up_callback
+            function(*args, **kwargs)
+
+    def on_right_up(self) -> None:
+        if self.right_up_callback is not None:
+            function, args, kwargs = self.right_up_callback
             function(*args, **kwargs)
 
     def on_enter(self) -> None:
