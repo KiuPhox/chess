@@ -1,31 +1,35 @@
+from typing import List
+
 from constants.SortingOrder import SortingOrder
+from constants.GameConfig import Debugger
 
 from managers.InputManager import InputManager
 
 from objects.Move import Move
-from objects.Piece import Piece, PieceType
 from objects.Square import Square
+from objects.Piece import Piece, PieceType
 from objects.SquareFrame import SquareFrame
+from objects.MoveGenerator import MoveGenerator
 
 LIGHT_COLOR = (234, 236, 209)
 DARK_COLOR = (120, 149, 88)
 SQUARE_SIZE = 64
 
 FEN_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+# FEN_START = "r1b5/8/8/4q3/8/2Q5/8/B6R"
 
 
 class Board:
     def __init__(self, scene):
         self.scene = scene
-        self.board = [PieceType.NONE] * 64
         self.selected_square = None
         self.color_to_move = PieceType.WHITE
-
-        self.decode_fen()
 
         self.create_square_frame()
         self.create_squares()
         self.create_pieces()
+
+        self.create_move_generator()
 
     def create_square_frame(self) -> None:
         self.square_frame = SquareFrame(self.scene)
@@ -41,26 +45,41 @@ class Board:
                 square = Square(self.scene)
                 square.position = (
                     SQUARE_SIZE * ((i * 8 + j) % 8 - 3.5),
-                    SQUARE_SIZE * ((i * 8 + j) // 8 - 3.5),
+                    SQUARE_SIZE * (8 - (i * 8 + j) // 8 - 4.5),
                 )
-                square.sprite.color = LIGHT_COLOR if is_light else DARK_COLOR
+                square.set_color(LIGHT_COLOR if is_light else DARK_COLOR)
 
                 square.left_down_callback = (self.on_square_down, [square], {})
                 square.left_up_callback = (self.on_square_up, [square], {})
                 square.on_enter_callback = (self.on_square_enter, [square], {})
+                square.index = len(self.squares)
+
+                if Debugger.ENABLED:
+                    square.label.text = str(square.index)
 
                 self.squares.append(square)
 
     def create_pieces(self) -> None:
-        for i in range(64):
-            if self.board[i] == PieceType.NONE:
-                continue
+        board = self.decode_fen(FEN_START)
 
-            piece = Piece(self.scene)
-            piece.position = self.squares[i].position
-            piece.set_type(self.board[i])
+        for i in range(8):
+            for j in range(8):
+                square_index = i * 8 + j
+                board_index = (7 - i) * 8 + j
 
-            self.squares[i].piece = piece
+                if board[board_index] == PieceType.NONE:
+                    continue
+
+                piece = Piece(self.scene)
+
+                square = self.squares[square_index]
+                square.piece = piece
+
+                piece.position = square.position
+                piece.set_type(board[board_index])
+
+    def create_move_generator(self) -> None:
+        self.mg = MoveGenerator(self)
 
     def update(self) -> None:
         if self.selected_square is None:
@@ -87,19 +106,35 @@ class Board:
         self.square_frame.active = True
         self.square_frame.position = square.position
 
+        if Debugger.ENABLED:
+            for s in self.squares:
+                s.sprite.color = s.default_color
+
+            moves = self.mg.generate_moves()
+            for move in moves:
+                if move.start_square == square:
+                    move.target_square.sprite.color = (0, 70, 50)
+
     def on_square_up(self, square: Square) -> None:
         if self.selected_square is None:
             return
 
         start_square = self.selected_square
-        end_square = square
+        target_square = square
 
-        move = Move(start_square, end_square)
+        move = Move(start_square, target_square)
+        valid_moves = self.mg.generate_moves()
+
+        if not valid_moves.__contains__(move):
+            move.target_square = start_square
 
         self.make_move(move)
-
         self.selected_square = None
         self.square_frame.active = False
+
+        if Debugger.ENABLED:
+            for s in self.squares:
+                s.sprite.color = s.default_color
 
     def on_square_enter(self, square: Square) -> None:
         if self.selected_square is None:
@@ -109,28 +144,32 @@ class Board:
 
     def make_move(self, move: Move) -> None:
         start_square = move.start_square
-        end_square = move.end_square
+        target_square = move.target_square
 
         selected_piece = start_square.piece
 
-        if end_square == start_square:
-            selected_piece.position = end_square.position
+        if target_square == start_square:
+            selected_piece.position = target_square.position
             selected_piece.sprite.set_order(SortingOrder.PIECE)
             return
 
-        if end_square.has_piece() and end_square.piece.is_team(selected_piece):
+        if target_square.has_piece() and target_square.piece.is_same_team(
+            selected_piece
+        ):
             selected_piece.position = start_square.position
             selected_piece.sprite.set_order(SortingOrder.PIECE)
             return
 
-        if end_square.has_piece() and not end_square.piece.is_team(selected_piece):
-            end_square.piece.active = False
-            end_square.piece = None
+        if target_square.has_piece() and not target_square.piece.is_same_team(
+            selected_piece
+        ):
+            target_square.piece.active = False
+            target_square.piece = None
 
-        end_square.piece = selected_piece
+        target_square.piece = selected_piece
         start_square.piece = None
 
-        selected_piece.position = end_square.position
+        selected_piece.position = target_square.position
         selected_piece.sprite.set_order(SortingOrder.PIECE)
 
         self.change_turn()
@@ -142,7 +181,8 @@ class Board:
             else PieceType.BLACK
         )
 
-    def decode_fen(self, fen=FEN_START) -> str:
+    def decode_fen(self, fen) -> List[PieceType]:
+        board = [PieceType.NONE] * 64
         fen = fen.split(" ")[0]
 
         i = 0
@@ -165,57 +205,9 @@ class Board:
 
                 piece_color = PieceType.WHITE if c.isupper() else PieceType.BLACK
 
-                self.board[i + j] = piece_type | piece_color
+                board[i + j] = piece_type | piece_color
                 i += 1
 
-    def encode_fen(self) -> str:
         fen = ""
 
-        for i in range(8):
-            empty = 0
-            for j in range(8):
-                piece = self.board[i * 8 + j]
-
-                if piece == PieceType.NONE:
-                    empty += 1
-                else:
-                    if empty > 0:
-                        fen += str(empty)
-                        empty = 0
-
-                    piece_type = {
-                        PieceType.KING: "k",
-                        PieceType.PAWN: "p",
-                        PieceType.KNIGHT: "n",
-                        PieceType.BISHOP: "b",
-                        PieceType.ROOK: "r",
-                        PieceType.QUEEN: "q",
-                    }.get(piece & 7, "")
-
-                    piece_color = "K" if piece & PieceType.WHITE else "k"
-
-                    fen += (
-                        piece_color
-                        if piece_type == ""
-                        else (
-                            piece_type.upper()
-                            if piece & PieceType.WHITE
-                            else piece_type
-                        )
-                    )
-
-            if empty > 0:
-                fen += str(empty)
-
-            if i < 7:
-                fen += "/"
-
-        return fen
-
-    def update_board(self) -> None:
-        for i in range(64):
-            self.board[i] = (
-                self.squares[i].piece.type
-                if self.squares[i].has_piece()
-                else PieceType.NONE
-            )
+        return board

@@ -44,8 +44,11 @@ class Piece(GameObject):
         image_name = f"{color}_{piece_type}"
         self.sprite.set_sprite(ImagePath.__dict__[image_name])
 
-    def is_team(self, piece: "Piece") -> bool:
+    def is_same_team(self, piece: "Piece") -> bool:
         return self.get_color() == piece.get_color()
+
+    def is_sliding(self) -> bool:
+        return (self.get_type() & 4) != 0
 
 
 class PieceType:
