@@ -37,8 +37,6 @@ class MoveGenerator:
                     min(num_south, num_west),
                 ]
 
-        print(NUM_SQUARES_TO_EDGE[7])
-
     def generate_moves(self) -> List[Move]:
         moves: list[Move] = []
 
