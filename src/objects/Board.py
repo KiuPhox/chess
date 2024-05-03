@@ -16,9 +16,11 @@ class Board:
     def __init__(self, scene):
         self.scene = scene
         self.board = [PieceType.NONE] * 64
-        self.squares: list[Square] = []
 
+        self.squares: list[Square] = []
         self.selected_square = None
+
+        self.color_to_move = PieceType.WHITE
 
         self.decode_fen()
 
@@ -58,7 +60,15 @@ class Board:
         self.selected_square.piece.position = InputManager.get_mouse_position()
 
     def on_square_click(self, square: Square) -> None:
-        if self.selected_square is None and square.has_piece():
+        if self.selected_square is None:
+            piece = square.piece
+
+            if piece is None:
+                return
+
+            if piece.get_color() != self.color_to_move:
+                return
+
             square.piece.sprite.set_order(SortingOrder.SELECTED_PIECE)
             self.selected_square = square
             return
@@ -67,6 +77,7 @@ class Board:
         end_square = square
 
         move = Move(start_square, end_square)
+
         self.make_move(move)
 
     def make_move(self, move: Move) -> None:
@@ -95,6 +106,14 @@ class Board:
         selected_piece.sprite.set_order(SortingOrder.PIECE)
 
         self.selected_square = None
+        self.change_turn()
+
+    def change_turn(self) -> None:
+        self.color_to_move = (
+            PieceType.WHITE
+            if self.color_to_move == PieceType.BLACK
+            else PieceType.BLACK
+        )
 
     def decode_fen(self, fen=FEN_START) -> str:
         fen = fen.split(" ")[0]
