@@ -49,6 +49,8 @@ class MoveGenerator:
                     moves.extend(self.generate_sliding_moves(start_square))
                 if piece.get_type() == PieceType.KNIGHT:
                     moves.extend(self.generate_knight_moves(start_square))
+                if piece.get_type() == PieceType.PAWN:
+                    moves.extend(self.generate_pawn_moves(start_square))
 
         return moves
 
@@ -117,5 +119,47 @@ class MoveGenerator:
                     target_square.piece
                 ):
                     moves.append(Move(start_square, target_square))
+
+        return moves
+
+    def generate_pawn_moves(self, start_square: Square) -> List[Move]:
+        moves: list[Move] = []
+        piece = start_square.piece
+        square_index = start_square.index
+
+        move_direction = 1 if piece.get_color() == PieceType.WHITE else -1
+        capture_directions = (
+            [7, 9] if piece.get_color() == PieceType.WHITE else [-7, -9]
+        )
+
+        start_rank = 1 if piece.get_color() == PieceType.WHITE else 6
+        start_rank_indices = [8 * start_rank + i for i in range(8)]
+
+        first_move = start_rank_indices.__contains__(square_index)
+
+        for index in range(2):
+            target_index = square_index + 8 * move_direction * (index + 1)
+            if target_index < 0 or target_index >= 64:
+                break
+            target_square = self.board.squares[target_index]
+
+            if target_square.piece is not None:
+                break
+
+            moves.append(Move(start_square, target_square))
+
+            if not first_move:
+                break
+
+        for direction in capture_directions:
+            target_index = square_index + direction
+            if target_index < 0 or target_index >= 64:
+                continue
+            target_square = self.board.squares[target_index]
+
+            if target_square.piece is not None and not piece.is_same_team(
+                target_square.piece
+            ):
+                moves.append(Move(start_square, target_square))
 
         return moves
