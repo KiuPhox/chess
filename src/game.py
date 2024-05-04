@@ -2,9 +2,10 @@ import pygame
 from sys import exit
 
 from engine.Screen import Screen
+from managers.GameStatsManager import GameStatsManager
 from utils.Time import Time
 
-from constants.GameConfig import ScreenSize
+from constants.GameConfig import GameConfig, ScreenConfig
 from constants.AssetPath import *
 
 from scenes.GameScene import GameScene
@@ -20,13 +21,17 @@ class Game:
         pygame.init()
         pygame.display.set_caption("Chess")
 
-        self.screen = Screen(ScreenSize.WIDTH, ScreenSize.HEIGHT)
-
+        self.screen = Screen(ScreenConfig.WIDTH, ScreenConfig.HEIGHT)
         self.clock = pygame.time.Clock()
+
         pygame.display.set_icon(pygame.image.load(ImagePath.BLACK_KING))
 
+        self.init_game_stats_manager()
         self.init_tween_manager()
         self.init_scene_manager()
+
+    def init_game_stats_manager(self):
+        GameStatsManager.init(self.clock)
 
     def init_tween_manager(self):
         TweenManager.init()
@@ -54,7 +59,7 @@ class Game:
 
             self.render()
 
-            Time.deltaTime = self.clock.tick(60) / 1000
+            Time.deltaTime = self.clock.tick(GameConfig.FPS) / 1000
             Time.time = pygame.time.get_ticks() / 1000
 
 

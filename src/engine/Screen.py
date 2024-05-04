@@ -1,10 +1,15 @@
 import pygame
 
+from constants.AssetPath import FontPath
+from constants.GameConfig import ScreenConfig, Debugger
+
+from managers.UIManager import UIManager
 from managers.InputManager import InputManager
 from managers.SpriteManager import SpriteManager
-from managers.UIManager import UIManager
+from managers.GameStatsManager import GameStatsManager
 
-from engine.components.Text import TextAlign
+from engine.GameObject import GameObject
+from engine.components.Text import Text, TextAlign
 
 
 class Screen:
@@ -13,10 +18,16 @@ class Screen:
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
 
+        self.create_game_stats()
+
+    def create_game_stats(self):
+        self.fps = pygame.font.Font(FontPath.TT_FORS, 20)
+
     def render(self):
         self.handle_input()
         self.render_sprites()
         self.render_texts()
+        self.render_stats()
 
     def handle_input(self):
         mouse_position = InputManager.get_mouse_position()
@@ -55,6 +66,8 @@ class Screen:
                 button.on_mouse_enter = False
 
     def render_sprites(self):
+        self.screen.fill(ScreenConfig.COLOR)
+
         for sprite in SpriteManager.sprites:
             game_object = sprite.game_object
 
@@ -103,3 +116,12 @@ class Screen:
             )
 
             self.screen.blit(scaled_text, position)
+
+    def render_stats(self):
+        if not Debugger.SHOW_GAME_STATS:
+            return
+
+        fps = GameStatsManager.get_fps()
+        fps_text = self.fps.render(f"FPS: {int(fps)}", True, (255, 255, 255))
+
+        self.screen.blit(fps_text, (10, 10))

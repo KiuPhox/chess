@@ -1,6 +1,6 @@
 import pygame
 
-from constants.GameConfig import ScreenSize
+from constants.GameConfig import ScreenConfig
 
 
 class InputManager:
@@ -34,7 +34,7 @@ class InputManager:
     def get_mouse_position():
         mouse_position = pygame.mouse.get_pos()
         mouse_position = (
-            mouse_position[0] - ScreenSize.WIDTH / 2,
-            mouse_position[1] - ScreenSize.HEIGHT / 2,
+            mouse_position[0] - ScreenConfig.WIDTH / 2,
+            mouse_position[1] - ScreenConfig.HEIGHT / 2,
         )
         return mouse_position
