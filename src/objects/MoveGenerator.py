@@ -47,6 +47,8 @@ class MoveGenerator:
             if piece is not None and piece.get_color() == self.board.color_to_move:
                 if piece.is_sliding():
                     moves.extend(self.generate_sliding_moves(start_square))
+                if piece.get_type() == PieceType.KNIGHT:
+                    moves.extend(self.generate_knight_moves(start_square))
 
         return moves
 
@@ -78,5 +80,42 @@ class MoveGenerator:
                 # Can't move any further in this direction after capturing opponent's piece
                 if end_piece and not piece.is_same_team(end_piece):
                     break
+
+        return moves
+
+    def generate_knight_moves(self, start_square: Square) -> List[Move]:
+        moves: list[Move] = []
+        piece = start_square.piece
+        square_index = start_square.index
+
+        for index in range(4):
+            if NUM_SQUARES_TO_EDGE[square_index][index] == 0:
+                continue
+
+            diagonal_indices = []
+            if index == 0:
+                diagonal_indices = [4, 6]
+            elif index == 1:
+                diagonal_indices = [5, 7]
+            elif index == 2:
+                diagonal_indices = [4, 7]
+            else:
+                diagonal_indices = [5, 6]
+
+            for direction_index in diagonal_indices:
+                direction_square_index = square_index + DIRECTION_OFFSETS[index]
+
+                if NUM_SQUARES_TO_EDGE[direction_square_index][direction_index] == 0:
+                    continue
+
+                target_square_index = (
+                    direction_square_index + DIRECTION_OFFSETS[direction_index]
+                )
+                target_square = self.board.squares[target_square_index]
+
+                if target_square.piece is None or not piece.is_same_team(
+                    target_square.piece
+                ):
+                    moves.append(Move(start_square, target_square))
 
         return moves
