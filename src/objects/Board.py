@@ -46,7 +46,7 @@ class Board:
 
         for i in range(8):
             for j in range(8):
-                is_light = (i + j) % 2 == 0
+                is_light = (i + j) % 2 == 1
 
                 square = Square(self.scene)
                 square.position = (
