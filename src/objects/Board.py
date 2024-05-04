@@ -16,7 +16,7 @@ from objects.MoveGenerator import MoveGenerator
 
 LIGHT_COLOR = (234, 236, 209)
 DARK_COLOR = (120, 149, 88)
-SQUARE_SIZE = 64
+SQUARE_SIZE = 100
 
 FEN_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 # FEN_START = "r1b5/8/8/4q3/8/2Q5/8/B6R"

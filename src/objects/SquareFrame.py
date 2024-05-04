@@ -11,7 +11,6 @@ class SquareFrame(GameObject):
         super().__init__(scene)
 
         self.name = "SquareFrame"
-        self.scale = (0.5, 0.5)
 
         sprite = Sprite(self)
         sprite.color = (255, 255, 255)

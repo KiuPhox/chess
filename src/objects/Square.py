@@ -16,8 +16,12 @@ class Square(Button):
     def __init__(self, scene):
         super().__init__(scene, ImagePath.SQUARE)
 
+        self.init()
+        self.create_legal_point()
+        self.create_capture_circle()
+
+    def init(self):
         self.name = "Square"
-        self.scale = (0.5, 0.5)
 
         self.label.font = pygame.font.Font(FontPath.TT_FORS, 80)
         self.label.color = (200, 200, 200)
@@ -27,13 +31,9 @@ class Square(Button):
 
         self.sprite.set_order(SortingOrder.SQUARE)
 
-        self.create_legal_point()
-        self.create_capture_circle()
-
     def create_legal_point(self) -> None:
         self.legal_point = GameObject(self.scene)
         self.legal_point.name = "Point"
-        self.legal_point.scale = (0.5, 0.5)
 
         point_sprite = Sprite(self.legal_point)
         point_sprite.set_sprite(ImagePath.LEGAL_POINT)
@@ -47,7 +47,6 @@ class Square(Button):
     def create_capture_circle(self) -> None:
         self.capture_circle = GameObject(self.scene)
         self.capture_circle.name = "CapturePoint"
-        self.capture_circle.scale = (0.5, 0.5)
 
         circle_sprite = Sprite(self.capture_circle)
         circle_sprite.set_sprite(ImagePath.CAPTURE_CIRCLE)
