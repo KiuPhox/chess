@@ -24,7 +24,7 @@ class Game:
         self.screen = Screen(ScreenConfig.WIDTH, ScreenConfig.HEIGHT)
         self.clock = pygame.time.Clock()
 
-        pygame.display.set_icon(pygame.image.load(ImagePath.BLACK_KING))
+        pygame.display.set_icon(pygame.image.load(ImagePath.GAME_LOGO))
 
         self.init_game_stats_manager()
         self.init_tween_manager()

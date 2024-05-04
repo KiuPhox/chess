@@ -16,7 +16,7 @@ class ImagePath:
     WHITE_BISHOP = IMAGE + "wb.png"
     WHITE_ROOK = IMAGE + "wr.png"
     WHITE_QUEEN = IMAGE + "wq.png"
-    GAME_LOGO = IMAGE + "square.png"
+    GAME_LOGO = IMAGE + "game_logo.png"
 
 
 class FontPath:
