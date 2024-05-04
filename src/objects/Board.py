@@ -1,12 +1,15 @@
 from typing import List
 
-from constants.SortingOrder import SortingOrder
 from constants.GameConfig import Debugger
+from constants.SortingOrder import SortingOrder
+
+from helper.BoardHelper import BoardHelper
 
 from managers.InputManager import InputManager
 
 from objects.Move import Move
 from objects.Square import Square
+from objects.BoardState import BoardState
 from objects.Piece import Piece, PieceType
 from objects.SquareFrame import SquareFrame
 from objects.MoveGenerator import MoveGenerator
@@ -24,6 +27,9 @@ class Board:
         self.scene = scene
         self.selected_square = None
         self.color_to_move = PieceType.WHITE
+
+        self.current_game_state: BoardState = BoardState(PieceType.NONE, 0)
+        self.game_state_history: list[BoardState] = []
 
         self.create_square_frame()
         self.create_squares()
@@ -112,8 +118,11 @@ class Board:
 
             moves = self.mg.generate_moves()
             for move in moves:
-                if move.start_square == square:
-                    move.target_square.sprite.color = (0, 70, 50)
+                start_square = self.squares[move.get_start_square_index()]
+                target_square = self.squares[move.get_target_square_index()]
+
+                if start_square == square:
+                    target_square.sprite.color = (0, 70, 50)
 
     def on_square_up(self, square: Square) -> None:
         if self.selected_square is None:
@@ -122,13 +131,24 @@ class Board:
         start_square = self.selected_square
         target_square = square
 
-        move = Move(start_square, target_square)
+        move = Move.from_square(start_square, target_square)
+
         valid_moves = self.mg.generate_moves()
 
-        if not valid_moves.__contains__(move):
-            move.target_square = start_square
+        valid_move = next(
+            (
+                m
+                for m in valid_moves
+                if m.get_start_square_index() == move.get_start_square_index()
+                and m.get_target_square_index() == move.get_target_square_index()
+            ),
+            None,
+        )
 
-        self.make_move(move)
+        if not valid_move:
+            valid_move = Move.from_square(start_square, start_square)
+
+        self.make_move(valid_move)
         self.selected_square = None
         self.square_frame.active = False
 
@@ -143,34 +163,53 @@ class Board:
         self.square_frame.position = square.position
 
     def make_move(self, move: Move) -> None:
-        start_square = move.start_square
-        target_square = move.target_square
+        start_square = self.squares[move.get_start_square_index()]
+        target_square = self.squares[move.get_target_square_index()]
+        move_flag = move.get_move_flag()
+        is_en_passant = move_flag == Move.EN_PASSANT
+
+        captured_piece_type = PieceType.NONE
+
+        if is_en_passant:
+            captured_piece_type = PieceType.PAWN | self.color_to_move
+        elif target_square.has_piece():
+            captured_piece_type = target_square.piece.get_piece_type()
+
+        new_en_passant_file = 0
 
         selected_piece = start_square.piece
 
+        # Invalid move
         if target_square == start_square:
             selected_piece.position = target_square.position
             selected_piece.sprite.set_order(SortingOrder.PIECE)
             return
 
-        if target_square.has_piece() and target_square.piece.is_same_team(
-            selected_piece
-        ):
-            selected_piece.position = start_square.position
-            selected_piece.sprite.set_order(SortingOrder.PIECE)
-            return
+        # Handle captures
+        if captured_piece_type != PieceType.NONE:
+            capture_square = target_square
 
-        if target_square.has_piece() and not target_square.piece.is_same_team(
-            selected_piece
-        ):
-            target_square.piece.active = False
-            target_square.piece = None
+            if is_en_passant:
+                capture_square = self.squares[
+                    target_square.index
+                    + (-8 if self.color_to_move == PieceType.WHITE else 8)
+                ]
+
+            capture_square.piece.active = False
+            capture_square.piece = None
+
+        # Pawn has moved two forwards, mark file with en-passant flag
+        if move_flag == Move.PAWN_TWO_FORWARD:
+            new_en_passant_file = BoardHelper.file_index(start_square.index) + 1
 
         target_square.piece = selected_piece
         start_square.piece = None
 
         selected_piece.position = target_square.position
         selected_piece.sprite.set_order(SortingOrder.PIECE)
+
+        self.current_game_state = BoardState(captured_piece_type, new_en_passant_file)
+        self.game_state_history.append(self.current_game_state)
 
         self.change_turn()
 

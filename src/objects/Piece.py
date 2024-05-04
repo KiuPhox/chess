@@ -28,6 +28,9 @@ class Piece(GameObject):
     def get_type(self):
         return self.type & 7
 
+    def get_piece_type(self):
+        return self.type
+
     def set_type(self, type: int):
         self.type = type
 

@@ -77,7 +77,7 @@ class MoveGenerator:
                 if end_piece and piece.is_same_team(end_piece):
                     break
 
-                moves.append(Move(start_square, target_square))
+                moves.append(Move.from_square(start_square, target_square))
 
                 # Can't move any further in this direction after capturing opponent's piece
                 if end_piece and not piece.is_same_team(end_piece):
@@ -118,7 +118,7 @@ class MoveGenerator:
                 if target_square.piece is None or not piece.is_same_team(
                     target_square.piece
                 ):
-                    moves.append(Move(start_square, target_square))
+                    moves.append(Move.from_square(start_square, target_square))
 
         return moves
 
@@ -137,8 +137,10 @@ class MoveGenerator:
 
         first_move = start_rank_indices.__contains__(square_index)
 
+        # Move single/double forward
         for index in range(2):
             target_index = square_index + 8 * move_direction * (index + 1)
+
             if target_index < 0 or target_index >= 64:
                 break
             target_square = self.board.squares[target_index]
@@ -146,11 +148,19 @@ class MoveGenerator:
             if target_square.piece is not None:
                 break
 
-            moves.append(Move(start_square, target_square))
+            if index == 0:
+                moves.append(Move.from_square(start_square, target_square))
+            elif first_move and index == 1:
+                moves.append(
+                    Move.from_square_and_flag(
+                        start_square, target_square, Move.PAWN_TWO_FORWARD
+                    )
+                )
 
             if not first_move:
                 break
 
+        # Capture moves
         for direction in capture_directions:
             target_index = square_index + direction
             if target_index < 0 or target_index >= 64:
@@ -160,6 +170,25 @@ class MoveGenerator:
             if target_square.piece is not None and not piece.is_same_team(
                 target_square.piece
             ):
-                moves.append(Move(start_square, target_square))
+                moves.append(Move.from_square(start_square, target_square))
+
+        # En passant
+        if self.board.current_game_state.en_passant_file > 0:
+            file_index = self.board.current_game_state.en_passant_file - 1
+            rank_index = 4 if self.board.color_to_move == PieceType.WHITE else 3
+            target_square_index = 8 * rank_index + file_index
+
+            if (
+                square_index + 1 == target_square_index
+                or square_index - 1 == target_square_index
+            ):
+                target_square = self.board.squares[
+                    target_square_index + 8 * move_direction
+                ]
+                moves.append(
+                    Move.from_square_and_flag(
+                        start_square, target_square, Move.EN_PASSANT
+                    )
+                )
 
         return moves
