@@ -4,4 +4,5 @@ class ScreenSize:
 
 
 class Debugger:
-    ENABLED = False
+    SHOW_LEGAL_MOVES = True
+    SHOW_BOARD_INDEXES = False

@@ -53,14 +53,17 @@ class Board:
                     SQUARE_SIZE * ((i * 8 + j) % 8 - 3.5),
                     SQUARE_SIZE * (8 - (i * 8 + j) // 8 - 4.5),
                 )
-                square.set_color(LIGHT_COLOR if is_light else DARK_COLOR)
+                square.legal_point.position = square.position
+                square.capture_circle.position = square.position
+
+                square.sprite.color = LIGHT_COLOR if is_light else DARK_COLOR
 
                 square.left_down_callback = (self.on_square_down, [square], {})
                 square.left_up_callback = (self.on_square_up, [square], {})
                 square.on_enter_callback = (self.on_square_enter, [square], {})
                 square.index = len(self.squares)
 
-                if Debugger.ENABLED:
+                if Debugger.SHOW_BOARD_INDEXES:
                     square.label.text = str(square.index)
 
                 self.squares.append(square)
@@ -112,17 +115,23 @@ class Board:
         self.square_frame.active = True
         self.square_frame.position = square.position
 
-        if Debugger.ENABLED:
+        if Debugger.SHOW_LEGAL_MOVES:
             for s in self.squares:
-                s.sprite.color = s.default_color
+                s.legal_point.active = False
+                s.capture_circle.active = False
 
             moves = self.mg.generate_moves()
             for move in moves:
                 start_square = self.squares[move.get_start_square_index()]
                 target_square = self.squares[move.get_target_square_index()]
 
-                if start_square == square:
-                    target_square.sprite.color = (0, 70, 50)
+                if start_square != square:
+                    continue
+
+                if target_square.has_piece():
+                    target_square.capture_circle.active = True
+                else:
+                    target_square.legal_point.active = True
 
     def on_square_up(self, square: Square) -> None:
         if self.selected_square is None:
@@ -152,9 +161,10 @@ class Board:
         self.selected_square = None
         self.square_frame.active = False
 
-        if Debugger.ENABLED:
+        if Debugger.SHOW_LEGAL_MOVES:
             for s in self.squares:
-                s.sprite.color = s.default_color
+                s.legal_point.active = False
+                s.capture_circle.active = False
 
     def on_square_enter(self, square: Square) -> None:
         if self.selected_square is None:

@@ -14,8 +14,8 @@ class SquareFrame(GameObject):
         self.scale = (0.5, 0.5)
 
         sprite = Sprite(self)
-        sprite.color = (100, 100, 100)
-        sprite.opacity = 100
+        sprite.color = (255, 255, 255)
+        sprite.opacity = 170
         sprite.set_sprite(ImagePath.SQUARE_FRAME)
         sprite.set_order(SortingOrder.SQUARE_FRAME)
 
