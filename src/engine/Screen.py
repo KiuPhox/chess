@@ -33,6 +33,9 @@ class Screen:
         mouse_position = InputManager.get_mouse_position()
 
         for button in UIManager.buttons:
+            if not button.active:
+                continue
+
             if not button.interactable:
                 continue
 
@@ -79,6 +82,9 @@ class Screen:
             scaled_image = pygame.transform.scale(sprite.image, size)
             scaled_image.fill(sprite.color, special_flags=pygame.BLEND_RGB_MULT)
             scaled_image.set_alpha(sprite.opacity)
+            scaled_image = pygame.transform.flip(
+                scaled_image, sprite.flip[0], sprite.flip[1]
+            )
 
             position = (
                 game_object.position[0] - sprite.width() / 2 + self.width / 2,
@@ -93,6 +99,9 @@ class Screen:
 
             if not game_object.active:
                 continue
+
+            if text.font is None:
+                text.font = pygame.font.Font(FontPath.TT_FORS, 20)
 
             text_surface = text.font.render(text.text, True, text.color)
             text_size = text_surface.get_size()

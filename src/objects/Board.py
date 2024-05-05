@@ -12,14 +12,21 @@ from objects.Square import Square
 from objects.BoardState import BoardState
 from objects.Piece import Piece, PieceType
 from objects.SquareFrame import SquareFrame
+from objects.PromotionBar import PromotionBar
 from objects.MoveGenerator import MoveGenerator
+
 
 LIGHT_COLOR = (234, 236, 209)
 DARK_COLOR = (120, 149, 88)
 SQUARE_SIZE = 100
 
-FEN_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+# FEN_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+
+# # Sliding pieces
 # FEN_START = "r1b5/8/8/4q3/8/2Q5/8/B6R"
+
+# # Promotion
+FEN_START = "r1b5/1P2P5/8/8/8/8/1p2p5/r1b5"
 
 
 class Board:
@@ -34,6 +41,7 @@ class Board:
         self.create_square_frame()
         self.create_squares()
         self.create_pieces()
+        self.create_promotion_bar()
 
         self.create_move_generator()
 
@@ -86,6 +94,10 @@ class Board:
 
                 piece.position = square.position
                 piece.set_type(board[board_index])
+
+    def create_promotion_bar(self) -> None:
+        self.promotion_bar = PromotionBar(self.scene, self)
+        self.promotion_bar.set_active(False)
 
     def create_move_generator(self) -> None:
         self.mg = MoveGenerator(self)
@@ -157,7 +169,13 @@ class Board:
         if not valid_move:
             valid_move = Move.from_square(start_square, start_square)
 
-        self.make_move(valid_move)
+        # Handle promotion
+        if valid_move.is_promotion():
+            self.selected_square.piece.position = target_square.position
+            self.promotion_bar.open(valid_move)
+        else:
+            self.make_move(valid_move)
+
         self.selected_square = None
         self.square_frame.active = False
 
@@ -176,6 +194,8 @@ class Board:
         start_square = self.squares[move.get_start_square_index()]
         target_square = self.squares[move.get_target_square_index()]
         move_flag = move.get_move_flag()
+
+        is_promotion = move.is_promotion()
         is_en_passant = move_flag == Move.EN_PASSANT
 
         captured_piece_type = PieceType.NONE
@@ -207,6 +227,17 @@ class Board:
 
             capture_square.piece.active = False
             capture_square.piece = None
+
+        # Handle promotion
+        if is_promotion:
+            promotion_type = {
+                Move.PROMOTE_TO_QUEEN: PieceType.QUEEN,
+                Move.PROMOTE_TO_KNIGHT: PieceType.KNIGHT,
+                Move.PROMOTE_TO_ROOK: PieceType.ROOK,
+                Move.PROMOTE_TO_BISHOP: PieceType.BISHOP,
+            }.get(move_flag)
+
+            selected_piece.set_type(promotion_type | self.color_to_move)
 
         # Pawn has moved two forwards, mark file with en-passant flag
         if move_flag == Move.PAWN_TWO_FORWARD:

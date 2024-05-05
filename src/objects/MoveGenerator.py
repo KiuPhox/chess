@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from objects.Board import Board
 
+from helper.BoardHelper import BoardHelper
 from objects.Move import Move
 from objects.Square import Square
 from objects.Piece import PieceType
@@ -149,6 +150,10 @@ class MoveGenerator:
         piece = start_square.piece
         square_index = start_square.index
 
+        is_promotion = BoardHelper.rank_index(square_index) == (
+            6 if self.board.color_to_move == PieceType.WHITE else 1
+        )
+
         move_direction = 1 if piece.get_color() == PieceType.WHITE else -1
         capture_directions = (
             [7, 9] if piece.get_color() == PieceType.WHITE else [-7, -9]
@@ -171,7 +176,12 @@ class MoveGenerator:
                 break
 
             if index == 0:
-                moves.append(Move.from_square(start_square, target_square))
+                if is_promotion:
+                    moves.extend(
+                        self.generate_promotion_moves(start_square, target_square)
+                    )
+                else:
+                    moves.append(Move.from_square(start_square, target_square))
             elif first_move and index == 1:
                 moves.append(
                     Move.from_square_and_flag(
@@ -192,7 +202,12 @@ class MoveGenerator:
             if target_square.piece is not None and not piece.is_same_team(
                 target_square.piece
             ):
-                moves.append(Move.from_square(start_square, target_square))
+                if is_promotion:
+                    moves.extend(
+                        self.generate_promotion_moves(start_square, target_square)
+                    )
+                else:
+                    moves.append(Move.from_square(start_square, target_square))
 
         # En passant
         if self.board.current_game_state.en_passant_file > 0:
@@ -212,5 +227,25 @@ class MoveGenerator:
                         start_square, target_square, Move.EN_PASSANT
                     )
                 )
+
+        return moves
+
+    def generate_promotion_moves(
+        self, start_square: Square, target_square: Square
+    ) -> List[Move]:
+        moves: list[Move] = [
+            Move.from_square_and_flag(
+                start_square, target_square, Move.PROMOTE_TO_QUEEN
+            ),
+            Move.from_square_and_flag(
+                start_square, target_square, Move.PROMOTE_TO_KNIGHT
+            ),
+            Move.from_square_and_flag(
+                start_square, target_square, Move.PROMOTE_TO_ROOK
+            ),
+            Move.from_square_and_flag(
+                start_square, target_square, Move.PROMOTE_TO_BISHOP
+            ),
+        ]
 
         return moves

@@ -5,3 +5,5 @@ class SortingOrder:
     SQUARE_HIGHLIGHT = 3
     PIECE = 4
     SELECTED_PIECE = 5
+    PROMOTION_BAR = 6
+    PROMOTION_PIECE = 7

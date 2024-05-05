@@ -4,6 +4,8 @@ class ImagePath:
     SQUARE_FRAME = IMAGE + "square_frame.png"
     CAPTURE_CIRCLE = IMAGE + "capture_circle.png"
     LEGAL_POINT = IMAGE + "legal_point.png"
+    PROMOTION_BAR = IMAGE + "promotion_bar.png"
+    CLOSE_ICON = IMAGE + "close_icon.png"
     BLACK_KING = IMAGE + "bk.png"
     BLACK_PAWN = IMAGE + "bp.png"
     BLACK_KNIGHT = IMAGE + "bn.png"

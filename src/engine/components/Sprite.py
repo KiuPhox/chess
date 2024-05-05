@@ -18,6 +18,8 @@ class Sprite(Component):
         self.order = SortingOrder.DEFAULT
         self.opacity = 255
 
+        self.flip = (False, False)
+
         SpriteManager.register_sprite(self)
 
     def set_sprite(self, path: str):
