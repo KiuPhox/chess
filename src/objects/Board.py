@@ -20,13 +20,13 @@ LIGHT_COLOR = (234, 236, 209)
 DARK_COLOR = (120, 149, 88)
 SQUARE_SIZE = 100
 
-# FEN_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+FEN_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 # # Sliding pieces
 # FEN_START = "r1b5/8/8/4q3/8/2Q5/8/B6R"
 
 # # Promotion
-FEN_START = "r1b5/1P2P5/8/8/8/8/1p2p5/r1b5"
+# FEN_START = "r1b5/1P2P5/8/8/8/8/1p2p5/r1b5"
 
 
 class Board:
